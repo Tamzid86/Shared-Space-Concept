@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shared Window</title>
+    <style>
+        body {
+            background: black;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+            position: relative;
+        }
+
+        #shared-circle {
+
+            border-radius: 50%;
+            background-color: red;
+            position: absolute;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="shared-circle">
+    </div>
+    <script>
+        console.log("HELLO")
+        // Rendering Code
+        const radius = 50;
+        const circle = document.querySelector("#shared-circle");
+        circle.style.height = `${radius * 2}px`;
+        circle.style.width = `${radius * 2}px`;
+        const windowID = Math.floor(Math.random() * 100000);
+        const currentDateTime = new Date().toISOString();
+        // hey! I want to register on localstorage
+        if (!localStorage.getItem("allWindowsData")) {
+            localStorage.setItem("allWindowsData",
+                JSON.stringify([
+                    {
+                        id: windowID,
+                        tx: window.screenX,
+                        ty: window.screenY,
+                        bx: window.innerWidth + window.screenX,
+                        by: window.innerHeight + window.screenY,
+                        dateTime : currentDateTime
+                    }
+                ])
+            )
+            updateWindowMap = {
+                windowID: 0
+            }
+        } else {
+            const allWindowData = JSON.parse(localStorage.getItem("allWindowsData"));
+            allWindowData.push(
+
+                {
+                    id: windowID,
+                    tx: window.screenX,
+                    ty: window.screenY,
+                    bx: window.innerWidth + window.screenX,
+                    by: window.innerHeight + window.screenY,
+                }
+
+            );
+            localStorage.setItem("allWindowsData", JSON.stringify(allWindowData));
+        }
+
+        function clearOutdatedWindows(){
+
+        }
+        function updateSelfPosition() {
+            let allWindowData = JSON.parse(localStorage.getItem("allWindowsData"));
+            // {
+            //     1: 0,
+            //     2: 10,
+            //     3: 4,
+                
+            // }
+
+            allWindowData = allWindowData.map(item => {
+                if (item.id == windowID) {
+
+                    return {
+                        id: windowID,
+
+                        tx: window.screenX,
+                        ty: window.screenY,
+                        bx: window.innerWidth + window.screenX,
+                        by: window.innerHeight + window.screenY,
+                    }
+                } else {
+                    return item
+                }
+            })
+            console.log(allWindowData);
+            localStorage.setItem("allWindowsData", JSON.stringify(allWindowData));
+        }
+        function returnSharedCenter() {
+            const allItems = JSON.parse(localStorage.getItem("allWindowsData"));
+            //return the sorted result here
+
+            tx = [], ty = [], bx = [], by = []
+            allItems.forEach(i => {
+                tx.push(i.tx);
+                ty.push(i.ty);
+                bx.push(i.bx);
+                by.push(i.by);
+            });
+
+
+            const minX = Math.min(...tx)
+            const minY = Math.min(...ty)
+            const maxX = Math.max(...bx)
+            const maxY = Math.max(...by)
+
+            // console.table(minX, minY, maxX, maxY);
+            // Circle position code
+            const sharedSpaceCenter = [(minX + maxX) / 2 - radius - window.screenX, (minY + maxY) / 2 - radius - window.screenY];
+            return sharedSpaceCenter;
+        }
+        function updateCirclePosition(circle, radius) {
+            // SHared space calculation code
+
+            updateSelfPosition();
+
+            const sharedSpaceCenter = returnSharedCenter();
+            circle.style.top = `${sharedSpaceCenter[1]}px`;
+            circle.style.left = `${sharedSpaceCenter[0]}px`;
+        }
+
+        setInterval(() => {
+            updateCirclePosition(circle, radius);
+        }, 200);
+    </script>
+
+</body>
+
+</html>
+
+<!-- 
+Concept of caching, shared space -->
